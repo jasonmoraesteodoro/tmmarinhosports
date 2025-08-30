@@ -180,6 +180,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: settingsData, error: settingsError } = await supabase
         .from('app_settings')
         .select('*')
+        .eq('id', 'app_settings_singleton')
         .single();
 
       if (settingsError && settingsError.code !== 'PGRST116') {
@@ -489,12 +490,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase
         .from('app_settings')
         .upsert({
+          id: 'app_settings_singleton',
           court_name: settings.courtName,
           contact_phone: settings.contactPhone,
           address: settings.address,
           operating_hours: settings.operatingHours,
           default_monthly_fee: settings.defaultMonthlyFee,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
         });
 
       if (error) {
