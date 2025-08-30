@@ -20,18 +20,40 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ onBackToLogin }) 
   useEffect(() => {
     const checkSession = async () => {
       try {
-        // Verificar se há uma sessão válida (usuário autenticado via link de reset)
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Extrair tokens da URL
+        const urlParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = urlParams.get('access_token');
+        const refreshToken = urlParams.get('refresh_token');
+        const type = urlParams.get('type');
         
-        if (error) {
-          console.error('Error checking session:', error);
-          setError('Link de redefinição inválido ou expirado');
-          setValidSession(false);
-        } else if (session) {
-          setValidSession(true);
+        if (type === 'recovery' && accessToken && refreshToken) {
+          // Se for um link de recuperação, definir a sessão manualmente
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          
+          if (sessionError) {
+            throw sessionError;
+          }
+          
+          if (data.session) {
+            setValidSession(true);
+          } else {
+            throw new Error('Falha ao configurar a sessão de recuperação');
+          }
+        } else if (type === 'recovery') {
+          // Se for um link de recuperação mas faltam tokens
+          throw new Error('Link de recuperação inválido ou incompleto');
         } else {
-          setError('Link de redefinição inválido ou expirado');
-          setValidSession(false);
+          // Se não for um link de recuperação, verificar a sessão normal
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error || !session) {
+            throw new Error('Sessão inválida ou expirada');
+          }
+          
+          setValidSession(true);
         }
       } catch (error) {
         console.error('Error checking session:', error);

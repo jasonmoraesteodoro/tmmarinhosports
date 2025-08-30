@@ -20,8 +20,12 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
     setMessage('');
 
     try {
+      const baseUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:5173' 
+        : 'https://tmmarinhosports.vercel.app';
+        
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}`,
+        redirectTo: `${baseUrl}/reset-password`,
       });
 
       if (error) throw error;

@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import type { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -28,7 +27,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar sessão atual
+    // Verificar se é um acesso via link de recuperação de senha
+    const urlParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = urlParams.get('type');
+    
+    // Se for um link de recuperação, não autenticar automaticamente
+    if (type === 'recovery') {
+      setLoading(false);
+      return;
+    }
+
+    // Verificar sessão atual para acessos normais
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setIsAuthenticated(true);
@@ -42,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Escutar mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_, session) => {
         if (session) {
           setIsAuthenticated(true);
           setUser({
