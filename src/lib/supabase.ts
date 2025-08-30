@@ -143,7 +143,7 @@ export interface Database {
       };
       app_settings: {
         Row: {
-          id: string;
+          user_id: string;
           court_name: string;
           contact_phone: string;
           address: string;
@@ -153,7 +153,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: {
-          id?: string;
+          user_id: string;
           court_name?: string;
           contact_phone?: string;
           address?: string;
@@ -163,7 +163,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: {
-          id?: string;
+          user_id?: string;
           court_name?: string;
           contact_phone?: string;
           address?: string;

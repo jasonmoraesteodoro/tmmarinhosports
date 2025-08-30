@@ -177,24 +177,48 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPayments(formattedPayments);
 
       // Carregar configurações
-      const { data: settingsData, error: settingsError } = await supabase
-        .from('app_settings')
-        .select('*')
-        .eq('id', 'app_settings_singleton')
-        .single();
+      // Carregar configurações do usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: settingsData, error: settingsError } = await supabase
+          .from('app_settings')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
 
-      if (settingsError && settingsError.code !== 'PGRST116') {
-        throw settingsError;
-      }
+        if (settingsError && settingsError.code !== 'PGRST116') {
+          // Se não for erro de "não encontrado", lançar o erro
+          if (settingsError.code !== 'PGRST116') {
+            throw settingsError;
+          }
+        }
 
-      if (settingsData) {
-        setAppSettings({
-          courtName: settingsData.court_name,
-          contactPhone: settingsData.contact_phone || '',
-          address: settingsData.address || '',
-          operatingHours: settingsData.operating_hours || '',
-          defaultMonthlyFee: parseFloat(settingsData.default_monthly_fee)
-        });
+        if (settingsData) {
+          setAppSettings({
+            courtName: settingsData.court_name,
+            contactPhone: settingsData.contact_phone || '',
+            address: settingsData.address || '',
+            operatingHours: settingsData.operating_hours || '',
+            defaultMonthlyFee: parseFloat(settingsData.default_monthly_fee)
+          });
+        } else {
+          // Se não existem configurações para este usuário, criar configurações padrão
+          const defaultSettings = {
+            courtName: 'TM Marinho Sports',
+            contactPhone: '',
+            address: '',
+            operatingHours: '',
+            defaultMonthlyFee: 150
+          };
+          
+          try {
+            await updateAppSettings(defaultSettings);
+          } catch (error) {
+            console.error('Error creating default settings:', error);
+            // Mesmo se falhar ao criar, usar as configurações padrão localmente
+            setAppSettings(defaultSettings);
+          }
+        }
       }
 
     } catch (error) {
@@ -487,10 +511,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateAppSettings = async (settings: AppSettings) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+
       const { error } = await supabase
         .from('app_settings')
         .upsert({
-          id: 'app_settings_singleton',
+          user_id: user.id,
           court_name: settings.courtName,
           contact_phone: settings.contactPhone,
           address: settings.address,
@@ -498,7 +527,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           default_monthly_fee: settings.defaultMonthlyFee,
           updated_at: new Date().toISOString()
         }, {
-          onConflict: 'id'
+          onConflict: 'user_id'
         });
 
       if (error) {
