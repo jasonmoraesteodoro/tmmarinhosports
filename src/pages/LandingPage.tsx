@@ -126,10 +126,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Tudo que você precisa para gerenciar sua quadra
+              Tudo que você precisa para gerenciar seus alunos
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Uma solução completa para academias e quadras de futevôlei
+              Uma solução completa para gestão de esportes e atividades físicas em qualquer modalidade
             </p>
           </div>
 

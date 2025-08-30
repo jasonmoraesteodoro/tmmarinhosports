@@ -180,7 +180,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToLanding, onGoToLogi
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full pl-10 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                className="w-full pl-12 pr-14 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 placeholder="Digite sua senha"
                 required
                 minLength={6}
@@ -188,7 +188,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToLanding, onGoToLogi
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -211,7 +211,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToLanding, onGoToLogi
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full pl-10 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                className="w-full pl-12 pr-14 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 placeholder="Confirme sua senha"
                 required
                 minLength={6}
@@ -219,7 +219,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToLanding, onGoToLogi
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 {showConfirmPassword ? (
                   <EyeOff className="w-5 h-5" />

@@ -183,14 +183,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onGoToRegister, onBackToLanding }
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                 placeholder="Digite sua senha"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -217,32 +217,38 @@ const LoginPage: React.FC<LoginPageProps> = ({ onGoToRegister, onBackToLanding }
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-4">
           {onGoToRegister && (
-            <button
-              type="button"
-              onClick={onGoToRegister}
-              className="text-sm text-orange-600 hover:text-orange-700 font-medium block mb-3"
-            >
-              Não tem uma conta? Cadastre-se
-            </button>
+            <div>
+              <button
+                type="button"
+                onClick={onGoToRegister}
+                className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+              >
+                Não tem uma conta? Cadastre-se
+              </button>
+            </div>
           )}
-          <button
-            type="button"
-            onClick={() => setShowForgotPassword(true)}
-            className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-          >
-            Esqueceu sua senha?
-          </button>
-          {onBackToLanding && (
+          <div>
             <button
               type="button"
-              onClick={onBackToLanding}
-              className="block w-full text-sm text-gray-600 hover:text-gray-700 font-medium mt-3 flex items-center justify-center space-x-1"
+              onClick={() => setShowForgotPassword(true)}
+              className="text-sm text-orange-600 hover:text-orange-700 font-medium"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Voltar ao Início</span>
+              Esqueceu sua senha?
             </button>
+          </div>
+          {onBackToLanding && (
+            <div>
+              <button
+                type="button"
+                onClick={onBackToLanding}
+                className="text-sm text-gray-600 hover:text-gray-700 font-medium flex items-center justify-center space-x-1 mx-auto"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Voltar ao Início</span>
+              </button>
+            </div>
           )}
         </div>
 
