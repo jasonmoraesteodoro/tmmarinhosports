@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import Dashboard from './pages/Dashboard';
@@ -17,6 +18,7 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showLandingPage, setShowLandingPage] = useState(true);
 
   useEffect(() => {
     // Verificar se a URL contém parâmetros de reset de senha
@@ -31,6 +33,7 @@ function AppContent() {
       
       if (hasAccessToken && hasRefreshToken && type === 'recovery') {
         setShowResetPassword(true);
+        setShowLandingPage(false);
       }
     };
 
@@ -44,6 +47,13 @@ function AppContent() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  useEffect(() => {
+    // Se o usuário já está autenticado, não mostrar a landing page
+    if (isAuthenticated) {
+      setShowLandingPage(false);
+    }
+  }, [isAuthenticated]);
 
   if (loading) {
     return (
@@ -62,6 +72,7 @@ function AppContent() {
       <ResetPasswordPage 
         onBackToLogin={() => {
           setShowResetPassword(false);
+          setShowLandingPage(true);
           // Limpar a URL
           window.history.replaceState({}, document.title, window.location.pathname);
         }} 
@@ -70,6 +81,9 @@ function AppContent() {
   }
 
   if (!isAuthenticated) {
+    if (showLandingPage) {
+      return <LandingPage onGetStarted={() => setShowLandingPage(false)} />;
+    }
     return <LoginPage />;
   }
 
