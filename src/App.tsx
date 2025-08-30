@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import Dashboard from './pages/Dashboard';
 import StudentsPage from './pages/StudentsPage';
@@ -13,35 +14,40 @@ import SettingsPage from './pages/SettingsPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 
+type ViewType = 'landing' | 'register' | 'login' | 'reset-password' | 'app';
+
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-  const [showResetPassword, setShowResetPassword] = useState(false);
-  const [showLandingPage, setShowLandingPage] = useState(true);
+  const [currentView, setCurrentView] = useState<ViewType>('landing');
 
   useEffect(() => {
-    // Verificar se a URL contém parâmetros de reset de senha
-    const checkForResetPassword = () => {
+    // Verificar se a URL contém parâmetros de autenticação
+    const checkAuthParams = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       
-      // Verificar se há tokens de reset na URL
+      // Verificar se há tokens de reset de senha na URL
       const hasAccessToken = hashParams.get('access_token') || urlParams.get('access_token');
       const hasRefreshToken = hashParams.get('refresh_token') || urlParams.get('refresh_token');
       const type = hashParams.get('type') || urlParams.get('type');
       
       if (hasAccessToken && hasRefreshToken && type === 'recovery') {
-        setShowResetPassword(true);
-        setShowLandingPage(false);
+        setCurrentView('reset-password');
+      } else if (type === 'signup') {
+        // Usuário confirmou email após cadastro, direcionar para login
+        setCurrentView('login');
+        // Limpar a URL
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     };
 
-    checkForResetPassword();
+    checkAuthParams();
 
-    // Escutar mudanças na URL
+    // Escutar mudanças na URL (hashchange)
     const handleHashChange = () => {
-      checkForResetPassword();
+      checkAuthParams();
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -49,9 +55,9 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    // Se o usuário já está autenticado, não mostrar a landing page
+    // Se o usuário já está autenticado, ir direto para o app
     if (isAuthenticated) {
-      setShowLandingPage(false);
+      setCurrentView('app');
     }
   }, [isAuthenticated]);
 
@@ -66,25 +72,42 @@ function AppContent() {
     );
   }
 
-  // Mostrar página de reset de senha se necessário
-  if (showResetPassword) {
-    return (
-      <ResetPasswordPage 
-        onBackToLogin={() => {
-          setShowResetPassword(false);
-          setShowLandingPage(true);
-          // Limpar a URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }} 
-      />
-    );
-  }
-
-  if (!isAuthenticated) {
-    if (showLandingPage) {
-      return <LandingPage onGetStarted={() => setShowLandingPage(false)} />;
+  // Renderizar baseado na view atual
+  if (!isAuthenticated || currentView !== 'app') {
+    switch (currentView) {
+      case 'landing':
+        return <LandingPage onGetStarted={() => setCurrentView('register')} />;
+      
+      case 'register':
+        return (
+          <RegisterPage 
+            onBackToLanding={() => setCurrentView('landing')}
+            onGoToLogin={() => setCurrentView('login')}
+          />
+        );
+      
+      case 'login':
+        return (
+          <LoginPage 
+            onGoToRegister={() => setCurrentView('register')}
+            onBackToLanding={() => setCurrentView('landing')}
+          />
+        );
+      
+      case 'reset-password':
+        return (
+          <ResetPasswordPage 
+            onBackToLogin={() => {
+              setCurrentView('login');
+              // Limpar a URL
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }} 
+          />
+        );
+      
+      default:
+        return <LandingPage onGetStarted={() => setCurrentView('register')} />;
     }
-    return <LoginPage />;
   }
 
   const renderPage = () => {

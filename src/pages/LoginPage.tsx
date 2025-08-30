@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CircleDot, Lock, AlertCircle, X, Mail, Eye, EyeOff } from 'lucide-react';
+import { CircleDot, Lock, AlertCircle, X, Mail, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -120,7 +120,12 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
   );
 };
 
-const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  onGoToRegister?: () => void;
+  onBackToLanding?: () => void;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ onGoToRegister, onBackToLanding }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -213,6 +218,15 @@ const LoginPage: React.FC = () => {
         </form>
 
         <div className="mt-6 text-center">
+          {onGoToRegister && (
+            <button
+              type="button"
+              onClick={onGoToRegister}
+              className="text-sm text-orange-600 hover:text-orange-700 font-medium block mb-3"
+            >
+              Não tem uma conta? Cadastre-se
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setShowForgotPassword(true)}
@@ -220,6 +234,16 @@ const LoginPage: React.FC = () => {
           >
             Esqueceu sua senha?
           </button>
+          {onBackToLanding && (
+            <button
+              type="button"
+              onClick={onBackToLanding}
+              className="block w-full text-sm text-gray-600 hover:text-gray-700 font-medium mt-3 flex items-center justify-center space-x-1"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Voltar ao Início</span>
+            </button>
+          )}
         </div>
 
       </div>
