@@ -18,7 +18,8 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToLanding, onGoToLogi
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [infoMessage, setInfoMessage] = useState('');
+  const [confirmationEmailSent, setConfirmationEmailSent] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,6 +33,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToLanding, onGoToLogi
     e.preventDefault();
     setLoading(true);
     setError('');
+    setInfoMessage('');
 
     // Validações
     if (formData.password.length < 6) {
@@ -53,6 +55,20 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToLanding, onGoToLogi
     }
 
     try {
+      // Primeiro, verificar se o email já existe e está confirmado
+      // Tentamos fazer login com uma senha aleatória para verificar se o usuário existe
+      const { error: checkError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: 'senha_temporaria_para_verificacao_123456789'
+      });
+
+      // Se o erro for "Invalid login credentials", significa que o email existe e está confirmado
+      if (checkError && checkError.message === 'Invalid login credentials') {
+        setError('Este email já possui uma conta ativa. Faça login ou use "Esqueceu sua senha?" para recuperar o acesso.');
+        setLoading(false);
+        return;
+      }
+
       const baseUrl = window.location.hostname === 'localhost' 
         ? 'http://localhost:5173' 
         : window.location.origin;
@@ -72,19 +88,32 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToLanding, onGoToLogi
         throw error;
       }
 
+      // Verificar se é um novo usuário ou reenvio de confirmação
       if (data.user) {
-        setSuccess(true);
+        // Novo usuário criado com sucesso - mostrar tela de confirmação
+        setConfirmationEmailSent(true);
+      } else {
+        // Email já existe mas não está confirmado - reenviou confirmação
+        setInfoMessage('Email de confirmação reenviado! Se você já tem uma conta com este email, verifique sua caixa de entrada e spam para o link de ativação.');
       }
 
     } catch (error: any) {
       console.error('Registration error:', error);
-      setError(error.message || 'Erro ao criar conta');
+      
+      // Tratamento específico para diferentes tipos de erro
+      if (error.message?.includes('Invalid email')) {
+        setError('Email inválido. Verifique o formato do email digitado.');
+      } else if (error.message?.includes('Password')) {
+        setError('Senha muito fraca. Use pelo menos 6 caracteres com letras e números.');
+      } else {
+        setError(error.message || 'Erro inesperado. Tente novamente.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  if (success) {
+  if (confirmationEmailSent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-500 to-yellow-500 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
@@ -92,11 +121,25 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToLanding, onGoToLogi
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Conta Criada com Sucesso!</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Verifique seu Email</h1>
             <p className="text-gray-600 mb-6">
-              Enviamos um email de confirmação para <strong>{formData.email}</strong>. 
-              Clique no link do email para ativar sua conta.
+              Se uma conta com o email <strong>{formData.email}</strong> existir, 
+              você receberá um link de confirmação. Verifique sua caixa de entrada 
+              e spam para ativar sua conta.
             </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start space-x-3">
+                <Mail className="w-5 h-5 text-blue-600 mt-0.5" />
+                <div className="text-left">
+                  <h4 className="font-medium text-blue-900 mb-1">Não recebeu o email?</h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Verifique a pasta de spam/lixo eletrônico</li>
+                    <li>• Aguarde alguns minutos (pode demorar)</li>
+                    <li>• Se já tem conta, faça login diretamente</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
             <div className="space-y-3">
               <button
                 onClick={onGoToLogin}
@@ -248,6 +291,17 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToLanding, onGoToLogi
             <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
               <AlertCircle className="w-5 h-5" />
               <span className="text-sm">{error}</span>
+            </div>
+          )}
+
+          {infoMessage && (
+            <div className="flex items-center space-x-2 text-blue-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium">{infoMessage}</span>
             </div>
           )}
 

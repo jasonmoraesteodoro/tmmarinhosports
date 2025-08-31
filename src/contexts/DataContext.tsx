@@ -230,6 +230,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addStudent = async (student: Omit<Student, 'id' | 'createdAt'>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('students')
         .insert({
@@ -243,7 +248,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           notes: student.notes,
           address: student.address,
           responsible_name: student.responsibleName,
-          responsible_phone: student.responsiblePhone
+          responsible_phone: student.responsiblePhone,
+          user_id: user.id
         })
         .select()
         .single();
@@ -288,6 +294,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateStudent = async (id: string, updatedStudent: Partial<Student>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { error } = await supabase
         .from('students')
         .update({
@@ -301,7 +312,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           notes: updatedStudent.notes,
           address: updatedStudent.address,
           responsible_name: updatedStudent.responsibleName,
-          responsible_phone: updatedStudent.responsiblePhone
+          responsible_phone: updatedStudent.responsiblePhone,
+          user_id: user.id
         })
         .eq('id', id);
 
@@ -356,6 +368,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addPayment = async (payment: Omit<Payment, 'id' | 'createdAt'>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('payments')
         .insert({
@@ -364,7 +381,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           amount: payment.amount,
           status: payment.status,
           payment_date: payment.paymentDate,
-          payment_method: payment.paymentMethod
+          payment_method: payment.paymentMethod,
+          user_id: user.id
         })
         .select()
         .single();
@@ -391,6 +409,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updatePayment = async (id: string, updatedPayment: Partial<Payment>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { error } = await supabase
         .from('payments')
         .update({
@@ -399,7 +422,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           amount: updatedPayment.amount,
           status: updatedPayment.status,
           payment_date: updatedPayment.paymentDate,
-          payment_method: updatedPayment.paymentMethod
+          payment_method: updatedPayment.paymentMethod,
+          user_id: user.id
         })
         .eq('id', id);
 
@@ -432,6 +456,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addClass = async (classData: Omit<Class, 'id' | 'createdAt'>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('classes')
         .insert({
@@ -439,7 +468,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           days_of_week: classData.daysOfWeek,
           start_time: classData.startTime,
           end_time: classData.endTime,
-          capacity: classData.capacity
+          capacity: classData.capacity,
+          user_id: user.id
         })
         .select()
         .single();
@@ -465,6 +495,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateClass = async (id: string, updatedClass: Partial<Class>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { error } = await supabase
         .from('classes')
         .update({
@@ -472,7 +507,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           days_of_week: updatedClass.daysOfWeek,
           start_time: updatedClass.startTime,
           end_time: updatedClass.endTime,
-          capacity: updatedClass.capacity
+          capacity: updatedClass.capacity,
+          user_id: user.id
         })
         .eq('id', id);
 
@@ -544,6 +580,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const generateMissingPaymentsForStudents = async (studentIds: string[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
     const selectedStudents = students.filter(student => 
       studentIds.includes(student.id) && student.status === 'active'
     );
@@ -585,7 +627,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Inserir todos os pagamentos de uma vez
     if (newPayments.length > 0) {
-      try {
         const { data, error } = await supabase
           .from('payments')
           .insert(
@@ -593,7 +634,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
               student_id: payment.studentId,
               month_year: payment.monthYear,
               amount: payment.amount,
-              status: payment.status
+              status: payment.status,
+              user_id: user.id
             }))
           )
           .select();
@@ -612,10 +654,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
 
         setPayments(prev => [...prev, ...formattedNewPayments]);
-      } catch (error) {
-        console.error('Error generating payments:', error);
-        throw error;
-      }
+    }
+    } catch (error) {
+      console.error('Error generating payments:', error);
+      throw error;
     }
   };
 
