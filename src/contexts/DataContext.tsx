@@ -151,7 +151,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         address: student.address || '',
         responsibleName: student.responsible_name || '',
         responsiblePhone: student.responsible_phone || '',
-        classIds: student.student_classes?.map((sc: any) => sc.class_id) || [],
+        classIds: (student.student_classes || []).map((sc: any) => sc.class_id),
         createdAt: student.created_at
       }));
       setStudents(formattedStudents);
@@ -277,7 +277,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (student.classIds.length > 0) {
         const classRelations = student.classIds.map(classId => ({
           student_id: data.id,
-          class_id: classId
+          class_id: classId,
+          user_id: user.id
         }));
 
         await supabase
@@ -331,7 +332,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (updatedStudent.classIds.length > 0) {
           const classRelations = updatedStudent.classIds.map(classId => ({
             student_id: id,
-            class_id: classId
+            class_id: classId,
+            user_id: user.id
           }));
 
           await supabase
